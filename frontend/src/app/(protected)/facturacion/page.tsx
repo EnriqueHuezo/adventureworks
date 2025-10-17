@@ -21,6 +21,7 @@ interface Product {
   id: number;
   name: string;
   sku: string;
+  type: 'SERVICIO' | 'PRODUCTO';
   unitPrice: string;
   cost: string;
   stockQty: number;
@@ -47,6 +48,7 @@ export default function FacturacionPage() {
   const [branchId, setBranchId] = useState('');
   const [type, setType] = useState('FACTURA');
   const [paymentMethod, setPaymentMethod] = useState('EFECTIVO');
+  const [issueDate, setIssueDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
   const [clientId, setClientId] = useState<number | null>(null); // Store client ID
   const [clientData, setClientData] = useState<Client>({
     id: 0,
@@ -161,8 +163,8 @@ export default function FacturacionPage() {
     const existingQty = existingItem ? existingItem.qty : 0;
     const totalQty = existingQty + itemQty;
     
-    // Validate stock availability
-    if (totalQty > selectedProduct.stockQty) {
+    // Validate stock availability only for products (not services)
+    if (selectedProduct.type === 'PRODUCTO' && totalQty > selectedProduct.stockQty) {
       toast.error('Stock insuficiente', {
         description: `Producto: ${selectedProduct.name}\nStock disponible: ${selectedProduct.stockQty} unidades\nYa en factura: ${existingQty} unidades\nIntentando agregar: ${itemQty} unidades\nTotal requerido: ${totalQty} unidades\n\nPor favor, reduce la cantidad o elimina el producto de la factura.`
       });
@@ -265,7 +267,9 @@ export default function FacturacionPage() {
       // Determine series based on type
       const series = type === 'FACTURA' ? 'FAC' : 
                     type === 'CCF' ? 'CCF' : 
-                    type === 'TICKET' ? 'TIK' : 'EXP';
+                    type === 'TICKET' ? 'TIK' : 
+                    type === 'EXPORTACION' ? 'EXP' :
+                    type === 'NOTA_CREDITO' ? 'NC' : 'ND';
 
       // Prepare request data according to backend schema
       const requestData = {
@@ -355,7 +359,9 @@ export default function FacturacionPage() {
       // Determine series based on type
       const series = type === 'FACTURA' ? 'FAC' : 
                     type === 'CCF' ? 'CCF' : 
-                    type === 'TICKET' ? 'TIK' : 'EXP';
+                    type === 'TICKET' ? 'TIK' : 
+                    type === 'EXPORTACION' ? 'EXP' :
+                    type === 'NOTA_CREDITO' ? 'NC' : 'ND';
 
       // Prepare request data according to backend schema (same as preview + issueDate)
       const requestData = {
@@ -369,7 +375,7 @@ export default function FacturacionPage() {
         observations: observations || undefined,  // Optional field
         applyRetencionRenta: applyRetRenta,
         applyRetencionIva: applyRetIva,
-        issueDate: new Date().toISOString()
+        issueDate: new Date(issueDate).toISOString()
       };
 
       console.log('Sending invoice data:', requestData);
@@ -400,6 +406,7 @@ export default function FacturacionPage() {
       setApplyRetRenta(false);
       setApplyRetIva(false);
       setObservations('');
+      setIssueDate(new Date().toISOString().split('T')[0]);
       setPreviewDialogOpen(false);
       
       toast.success('Factura emitida exitosamente');
@@ -457,7 +464,7 @@ export default function FacturacionPage() {
           <CardTitle>1. Datos de Facturación</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="branch">Sucursal *</Label>
               <Select value={branchId} onValueChange={setBranchId}>
@@ -484,8 +491,20 @@ export default function FacturacionPage() {
                   <SelectItem value="CCF">Comprobante Crédito Fiscal</SelectItem>
                   <SelectItem value="TICKET">Ticket</SelectItem>
                   <SelectItem value="EXPORTACION">Exportación</SelectItem>
+                  <SelectItem value="NOTA_CREDITO">Nota de Crédito</SelectItem>
+                  <SelectItem value="NOTA_DEBITO">Nota de Débito</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="issueDate">Fecha de Emisión *</Label>
+              <Input
+                id="issueDate"
+                type="date"
+                value={issueDate}
+                onChange={(e) => setIssueDate(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+              />
             </div>
           </div>
         </CardContent>
@@ -787,17 +806,24 @@ export default function FacturacionPage() {
                     }`}
                     onClick={() => setSelectedProduct(product)}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                     <div className="font-medium">{product.name}</div>
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        product.stockQty <= 0 
-                          ? 'bg-destructive/10 text-destructive' 
-                          : product.stockQty < 10
-                          ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-500'
-                          : 'bg-green-500/10 text-green-700 dark:text-green-500'
-                      }`}>
-                        Stock: {product.stockQty}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <Badge variant={product.type === 'SERVICIO' ? 'secondary' : 'outline'} className="text-xs">
+                          {product.type === 'SERVICIO' ? 'Servicio' : 'Producto'}
+                        </Badge>
+                        {product.type === 'PRODUCTO' && (
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            product.stockQty <= 0 
+                              ? 'bg-destructive/10 text-destructive' 
+                              : product.stockQty < 10
+                              ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-500'
+                              : 'bg-green-500/10 text-green-700 dark:text-green-500'
+                          }`}>
+                            Stock: {product.stockQty}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-sm text-muted-foreground flex justify-between">
                       <span>{product.sku}</span>
@@ -813,32 +839,46 @@ export default function FacturacionPage() {
                 <div className="p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium">{selectedProduct.name}</span>
-                    <span className="text-sm font-mono">{selectedProduct.sku}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={selectedProduct.type === 'SERVICIO' ? 'secondary' : 'outline'} className="text-xs">
+                        {selectedProduct.type === 'SERVICIO' ? 'Servicio' : 'Producto'}
+                      </Badge>
+                      <span className="text-sm font-mono">{selectedProduct.sku}</span>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Precio unitario:</span>
                     <span className="font-semibold">{formatCurrency(selectedProduct.unitPrice)}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm mt-1">
-                    <span className="text-muted-foreground">Stock disponible:</span>
-                    <span className={`font-bold ${
-                      selectedProduct.stockQty <= 0 
-                        ? 'text-destructive' 
-                        : selectedProduct.stockQty < 10
-                        ? 'text-yellow-600 dark:text-yellow-500'
-                        : 'text-green-600 dark:text-green-500'
-                    }`}>
-                      {selectedProduct.stockQty} unidades
-                    </span>
-                  </div>
-                  {selectedProduct.stockQty <= 0 && (
-                    <div className="mt-2 p-2 bg-destructive/10 rounded text-xs text-destructive">
-                      ⚠️ Sin stock disponible
-                    </div>
+                  {selectedProduct.type === 'PRODUCTO' && (
+                    <>
+                      <div className="flex items-center justify-between text-sm mt-1">
+                        <span className="text-muted-foreground">Stock disponible:</span>
+                        <span className={`font-bold ${
+                          selectedProduct.stockQty <= 0 
+                            ? 'text-destructive' 
+                            : selectedProduct.stockQty < 10
+                            ? 'text-yellow-600 dark:text-yellow-500'
+                            : 'text-green-600 dark:text-green-500'
+                        }`}>
+                          {selectedProduct.stockQty} unidades
+                        </span>
+                      </div>
+                      {selectedProduct.stockQty <= 0 && (
+                        <div className="mt-2 p-2 bg-destructive/10 rounded text-xs text-destructive">
+                          ⚠️ Sin stock disponible
+                        </div>
+                      )}
+                      {selectedProduct.stockQty > 0 && selectedProduct.stockQty < 10 && (
+                        <div className="mt-2 p-2 bg-yellow-500/10 rounded text-xs text-yellow-700 dark:text-yellow-500">
+                          ⚠️ Stock bajo
+                        </div>
+                      )}
+                    </>
                   )}
-                  {selectedProduct.stockQty > 0 && selectedProduct.stockQty < 10 && (
-                    <div className="mt-2 p-2 bg-yellow-500/10 rounded text-xs text-yellow-700 dark:text-yellow-500">
-                      ⚠️ Stock bajo
+                  {selectedProduct.type === 'SERVICIO' && (
+                    <div className="mt-2 p-2 bg-blue-500/10 rounded text-xs text-blue-700 dark:text-blue-500">
+                      ℹ️ Los servicios no requieren stock disponible
                     </div>
                   )}
                 </div>
@@ -849,13 +889,15 @@ export default function FacturacionPage() {
                       id="qty"
                       type="number"
                       min="1"
-                      max={selectedProduct.stockQty}
+                      max={selectedProduct.type === 'PRODUCTO' ? selectedProduct.stockQty : undefined}
                       value={itemQty}
                       onChange={(e) => setItemQty(parseInt(e.target.value) || 1)}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Máximo: {selectedProduct.stockQty} unidades
-                    </p>
+                    {selectedProduct.type === 'PRODUCTO' && (
+                      <p className="text-xs text-muted-foreground">
+                        Máximo: {selectedProduct.stockQty} unidades
+                      </p>
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="discount">Descuento ($)</Label>

@@ -13,7 +13,7 @@ const invoiceItemSchema = z.object({
 const invoicePreviewSchema = z.object({
   branchId: z.number().int().positive(),
   series: z.string().min(1),
-  type: z.enum(['FACTURA', 'TICKET', 'CCF', 'EXPORTACION']),
+  type: z.enum(['FACTURA', 'TICKET', 'CCF', 'EXPORTACION', 'NOTA_CREDITO', 'NOTA_DEBITO']),
   clientId: z.number().int().positive(),
   userId: z.number().int().positive(),
   items: z.array(invoiceItemSchema).min(1),

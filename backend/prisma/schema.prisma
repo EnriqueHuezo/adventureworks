@@ -29,6 +29,8 @@ enum InvoiceType {
   TICKET
   CCF
   EXPORTACION
+  NOTA_CREDITO
+  NOTA_DEBITO
 }
 
 enum InvoiceStatus {

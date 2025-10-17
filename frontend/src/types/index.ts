@@ -1,6 +1,6 @@
 export type RoleName = 'CAJERO' | 'GERENTE' | 'ADMINISTRADOR';
 export type ProductType = 'SERVICIO' | 'PRODUCTO';
-export type InvoiceType = 'FACTURA' | 'TICKET' | 'CCF' | 'EXPORTACION';
+export type InvoiceType = 'FACTURA' | 'TICKET' | 'CCF' | 'EXPORTACION' | 'NOTA_CREDITO' | 'NOTA_DEBITO';
 export type InvoiceStatus = 'DRAFT' | 'EMITIDA' | 'ANULADA';
 export type PaymentMethod = 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'CREDITO';
 

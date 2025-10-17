@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Search, Download, Eye, X, FileText, FileJson, FileDown } from 'lucide-react';
+import { Search, Download, Eye, X, FileText, FileJson, FileDown, FileCheck, Ban } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -100,6 +100,10 @@ export default function ReportesPage() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  
+  // Status dialog
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [statusInvoice, setStatusInvoice] = useState<InvoiceDetail | null>(null);
 
   const canViewReports = hasRole('GERENTE') || hasRole('ADMINISTRADOR');
 
@@ -224,6 +228,36 @@ export default function ReportesPage() {
       setDetailDialogOpen(false);
     } finally {
       setLoadingDetail(false);
+    }
+  };
+
+  const handleCheckStatus = async (invoiceId: number) => {
+    try {
+      setStatusDialogOpen(true);
+      const response = await api.get(`/invoices/${invoiceId}`);
+      setStatusInvoice(response.data);
+    } catch (error: any) {
+      console.error('Error loading invoice status:', error);
+      toast.error('Error al consultar el estado', {
+        description: error.response?.data?.error || error.message
+      });
+      setStatusDialogOpen(false);
+    }
+  };
+
+  const handleCancelInvoice = async (invoiceId: number) => {
+    try {
+      const confirmCancel = window.confirm('¿Estás seguro de que deseas anular este documento? Esta acción no se puede deshacer.');
+      if (!confirmCancel) return;
+
+      await api.post(`/invoices/${invoiceId}/void`);
+      toast.success('Documento anulado exitosamente');
+      fetchInvoices(); // Refresh the list
+    } catch (error: any) {
+      console.error('Error canceling invoice:', error);
+      toast.error('Error al anular el documento', {
+        description: error.response?.data?.error || error.message
+      });
     }
   };
 
@@ -520,6 +554,8 @@ export default function ReportesPage() {
                   <SelectItem value="CCF">CCF</SelectItem>
                   <SelectItem value="TICKET">Ticket</SelectItem>
                   <SelectItem value="EXPORTACION">Exportación</SelectItem>
+                  <SelectItem value="NOTA_CREDITO">Nota de Crédito</SelectItem>
+                  <SelectItem value="NOTA_DEBITO">Nota de Débito</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -649,14 +685,35 @@ export default function ReportesPage() {
                         </TableCell>
                         <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Ver detalles"
-                            onClick={() => handleViewDetails(invoice.id)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="Ver detalles"
+                              onClick={() => handleViewDetails(invoice.id)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="Consultar estado"
+                              onClick={() => handleCheckStatus(invoice.id)}
+                            >
+                              <FileCheck className="h-4 w-4" />
+                            </Button>
+                            {invoice.status !== 'ANULADA' && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Anular documento"
+                                onClick={() => handleCancelInvoice(invoice.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -895,6 +952,82 @@ export default function ReportesPage() {
               </Button>
             </DialogFooter>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Status Dialog */}
+      <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Estado del Documento</DialogTitle>
+            <DialogDescription>
+              Información general del documento tributario
+            </DialogDescription>
+          </DialogHeader>
+          
+          {statusInvoice ? (
+            <div className="space-y-4">
+              {/* Status Badge */}
+              <div className="flex items-center justify-center py-4">
+                <div className="text-center">
+                  <div className="mb-2">{getStatusBadge(statusInvoice.status)}</div>
+                  <p className="text-sm text-muted-foreground">
+                    {statusInvoice.status === 'EMITIDA' && 'El documento ha sido emitido correctamente'}
+                    {statusInvoice.status === 'ANULADA' && 'El documento ha sido anulado'}
+                    {statusInvoice.status === 'DRAFT' && 'El documento está en estado borrador'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Document Info */}
+              <div className="border rounded-lg p-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-muted-foreground font-medium">Número de Control</p>
+                    <p className="font-mono font-semibold">{statusInvoice.numeroControl}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground font-medium">Tipo de Documento</p>
+                    <p className="font-semibold">{statusInvoice.type}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground font-medium">Fecha de Emisión</p>
+                    <p>{formatDate(statusInvoice.issueDate)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground font-medium">Monto Total</p>
+                    <p className="font-semibold">{formatCurrency(statusInvoice.total)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground font-medium">Cliente</p>
+                    <p>{statusInvoice.client.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground font-medium">Forma de Pago</p>
+                    <p>{statusInvoice.paymentMethod}</p>
+                  </div>
+                </div>
+                
+                <div className="pt-3 border-t">
+                  <p className="text-muted-foreground font-medium text-sm mb-1">Código de Generación</p>
+                  <p className="font-mono text-xs break-all">{statusInvoice.codeGeneracion}</p>
+                </div>
+                
+                <div className="pt-3 border-t">
+                  <p className="text-muted-foreground font-medium text-sm mb-1">Sello de Recepción</p>
+                  <p className="font-mono text-xs break-all">{statusInvoice.selloRecepcion}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-center py-8 text-muted-foreground">Cargando información...</p>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
+              Cerrar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
