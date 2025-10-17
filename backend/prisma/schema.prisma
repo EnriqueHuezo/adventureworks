@@ -1,0 +1,196 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum RoleName {
+  CAJERO
+  GERENTE
+  ADMINISTRADOR
+}
+
+enum ProductType {
+  SERVICIO
+  PRODUCTO
+}
+
+enum StockType {
+  IN
+  OUT
+  ADJUST
+}
+
+enum InvoiceType {
+  FACTURA
+  TICKET
+  CCF
+  EXPORTACION
+}
+
+enum InvoiceStatus {
+  DRAFT
+  EMITIDA
+  ANULADA
+}
+
+enum PaymentMethod {
+  EFECTIVO
+  TARJETA
+  TRANSFERENCIA
+  CREDITO
+}
+
+enum ClientType {
+  NATURAL
+  JURIDICA
+}
+
+model Role {
+  id    Int        @id @default(autoincrement())
+  name  RoleName   @unique
+  users UserRole[]
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  username  String     @unique
+  password  String
+  fullName  String
+  isActive  Boolean    @default(true)
+  roles     UserRole[]
+  branchId  Int?
+  branch    Branch?    @relation(fields: [branchId], references: [id])
+  invoices  Invoice[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model UserRole {
+  userId Int
+  roleId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model Branch {
+  id        Int        @id @default(autoincrement())
+  name      String
+  code      String     @unique
+  address   String
+  invoices  Invoice[]
+  users     User[]
+  sequences Sequence[]
+}
+
+model Sequence {
+  id        Int    @id @default(autoincrement())
+  branchId  Int
+  series    String
+  nextValue Int    @default(1)
+  branch    Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, series])
+}
+
+model Client {
+  id                 Int        @id @default(autoincrement())
+  name               String
+  tipoCliente        ClientType @default(NATURAL)
+  email              String?
+  phone              String?
+  address            String?
+  nit                String?
+  nrc                String?
+  dui                String?    @unique
+  actividadEconomica String?
+  nombreComercial    String?
+  isActive           Boolean    @default(true)
+  invoices           Invoice[]
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+model Supplier {
+  id        Int      @id @default(autoincrement())
+  company   String
+  contact   String?
+  email     String?
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id        Int              @id @default(autoincrement())
+  name      String
+  sku       String           @unique
+  type      ProductType
+  cost      Decimal          @db.Decimal(12, 2)
+  unitPrice Decimal          @db.Decimal(12, 2)
+  stockQty  Int              @default(0)
+  isActive  Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  items     InvoiceItem[]
+  stockMovs StockMovement[]
+}
+
+model StockMovement {
+  id        Int       @id @default(autoincrement())
+  productId Int
+  type      StockType
+  qty       Int
+  note      String?
+  createdAt DateTime  @default(now())
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id               Int           @id @default(autoincrement())
+  numeroControlDTE String        @unique
+  codeGeneracion   String        @unique
+  numeroControl    String        @unique
+  selloRecepcion   String        @unique
+  issueDate        DateTime
+  series           String
+  branchId         Int
+  type             InvoiceType
+  status           InvoiceStatus @default(EMITIDA)
+  categoria        String?
+  clientId         Int
+  userId           Int
+  subtotal         Decimal       @db.Decimal(14, 2)
+  iva13            Decimal       @db.Decimal(14, 2)
+  retencionRenta10 Decimal       @db.Decimal(14, 2)
+  retencionIva1    Decimal       @db.Decimal(14, 2)
+  total            Decimal       @db.Decimal(14, 2)
+  paymentMethod    PaymentMethod
+  observations     String?
+  items            InvoiceItem[]
+  createdAt        DateTime      @default(now())
+  branch           Branch        @relation(fields: [branchId], references: [id])
+  client           Client        @relation(fields: [clientId], references: [id])
+  user             User          @relation(fields: [userId], references: [id])
+}
+
+model InvoiceItem {
+  id        Int     @id @default(autoincrement())
+  invoiceId Int
+  productId Int
+  qty       Int
+  cost      Decimal @db.Decimal(12, 2)
+  unitPrice Decimal @db.Decimal(12, 2)
+  discount  Decimal @db.Decimal(12, 2) @default(0)
+  subtotal  Decimal @db.Decimal(14, 2)
+  product   Product @relation(fields: [productId], references: [id])
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
