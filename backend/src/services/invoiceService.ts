@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import { InvoiceType, PaymentMethod, ProductType } from '@prisma/client';
 import { invoiceRepository, InvoiceFilters } from '../repositories/invoiceRepository';
-import { sequenceRepository } from '../repositories/sequenceRepository';
 import { productRepository } from '../repositories/productRepository';
 import { PrismaClient } from '@prisma/client';
 import {
@@ -42,6 +41,47 @@ export interface InvoiceCreateData extends InvoicePreviewData {
 }
 
 export const invoiceService = {
+  async getNextSequenceValue(tx: any, branchId: number, series: string): Promise<number> {
+    // Lock the sequence row for update
+    const sequence = await tx.sequence.findUnique({
+      where: {
+        branchId_series: {
+          branchId,
+          series
+        }
+      }
+    });
+
+    if (!sequence) {
+      // Create if doesn't exist
+      await tx.sequence.create({
+        data: {
+          branchId,
+          series,
+          nextValue: 2
+        }
+      });
+      return 1;
+    }
+
+    const currentValue = sequence.nextValue;
+
+    // Increment for next time
+    await tx.sequence.update({
+      where: {
+        branchId_series: {
+          branchId,
+          series
+        }
+      },
+      data: {
+        nextValue: currentValue + 1
+      }
+    });
+
+    return currentValue;
+  },
+
   async preview(data: InvoicePreviewData) {
     // Get all products with current prices
     const products = await Promise.all(
@@ -97,10 +137,18 @@ export const invoiceService = {
       });
       if (!branch) throw new Error('Sucursal no encontrada');
 
-      // Get next sequence number
-      const sequential = await sequenceRepository.getNextValue(data.branchId, data.series);
+      // Get next sequence number within the transaction
+      const sequential = await this.getNextSequenceValue(tx, data.branchId, data.series);
       const numeroControl = generateNumeroControl(data.series, sequential);
-      const numeroControlDTE = generateNumeroControlDTE(branch.code, sequential);
+      const numeroControlDTE = generateNumeroControlDTE(branch.code, data.series, sequential);
+
+      // Check if numeroControlDTE already exists (additional safety check)
+      const existingInvoice = await tx.invoice.findUnique({
+        where: { numeroControlDTE }
+      });
+      if (existingInvoice) {
+        throw new Error(`El número de control DTE ${numeroControlDTE} ya existe. Intente nuevamente.`);
+      }
 
       // Generate unique codes
       const codeGeneracion = uuidv4().toUpperCase();

@@ -10,10 +10,11 @@ export function generateNumeroControl(series: string, sequential: number): strin
  * Genera el número de control DTE según formato del Ministerio de Hacienda de El Salvador
  * Formato: DTE-01-S022P001-000000000271089
  * @param branchCode - Código de la sucursal (ej: SUC001)
+ * @param series - Serie del documento (ej: FAC, ND, NC)
  * @param sequential - Número secuencial de la factura
  * @returns Número de control DTE formateado
  */
-export function generateNumeroControlDTE(branchCode: string, sequential: number): string {
+export function generateNumeroControlDTE(branchCode: string, series: string, sequential: number): string {
   // DTE: prefijo fijo
   // 01: ambiente (00=Prueba, 01=Producción)
   const ambiente = '01';
@@ -25,8 +26,9 @@ export function generateNumeroControlDTE(branchCode: string, sequential: number)
   const codigoEstablecimiento = `S${leftPad(parseInt(branchNumber), 3)}P${puntoEmision}`;
   
   // Número secuencial de 15 dígitos
+  // Incluir el tipo de documento para evitar duplicados entre series
   const numeroSecuencial = leftPad(sequential, 15);
   
-  return `DTE-${ambiente}-${codigoEstablecimiento}-${numeroSecuencial}`;
+  return `DTE-${ambiente}-${codigoEstablecimiento}-${series}-${numeroSecuencial}`;
 }
 
