@@ -42,4 +42,3 @@ export function calculateTotal(
 ): Decimal {
   return roundMoney(subtotal.plus(iva).minus(retencionRenta).minus(retencionIva));
 }
-
