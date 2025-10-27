@@ -16,7 +16,8 @@
     "prisma:seed": "ts-node ./prisma/seed.ts",
     "prisma:seed:test": "dotenv -e .env.test -- ts-node ./prisma/seed.ts",
     "test": "vitest",
-    "test:run:combined": "vitest run --coverage --reporter=lcov --reporter=html --output=./coverage",
+    "test:run:html": "vitest run --reporter=html",
+    "test:run:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui --coverage.enabled=true"
   },
   "dependencies": {

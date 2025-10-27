@@ -64,11 +64,11 @@ jobs:
       # Run tests with coverage and HTML report
       - name: Run backend tests with HTML & coverage
         working-directory: ./backend
-        run: npm run test:run:combined
+        run: npm run test:run:html
 
       # Deploy coverage to GitHub Pages
       - name: Deploy coverage to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./backend/coverage
+          publish_dir: ./backend/html
