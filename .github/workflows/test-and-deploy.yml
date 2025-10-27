@@ -66,14 +66,6 @@ jobs:
         working-directory: ./backend
         run: npm run test:run:html
 
-      # Fix paths in HTML for GH Pages subpath
-      - name: Fix coverage HTML paths for GH Pages
-        working-directory: ./backend
-        run: |
-          find ./html -type f -name "*.html" -exec sed -i 's|href="/|href="./|g' {} +
-          find ./html -type f -name "*.html" -exec sed -i 's|src="/|src="./|g' {} +
-          find ./html -type f -name "*.js" -exec sed -i 's|"/|"./|g' {} +
-
       # Deploy coverage to GitHub Pages
       - name: Deploy coverage to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

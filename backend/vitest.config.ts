@@ -1,7 +1,6 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  base: '/adventureworks',
   test: {
     environment: 'node',
     globals: true,
