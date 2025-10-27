@@ -1,4 +1,4 @@
-import { formatDate, formatDateTime, getTodayEnd, getTodayStart } from "./dates";
+import { formatDate, formatDateTime, getTodayEnd, getTodayStart } from "../../src/utils/dates";
 import { describe, expect, it } from "vitest";
 
 describe('date utils', () => {

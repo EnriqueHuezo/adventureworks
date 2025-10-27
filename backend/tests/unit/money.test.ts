@@ -8,7 +8,7 @@ import {
   formatMoney,
   calculateRetencionRenta,
   calculateRetencionIVA
-} from './money';
+} from '../../src/utils/money';
 
 describe('money utils', () => {
   it('roundMoney rounds to 2 decimals', () => {
