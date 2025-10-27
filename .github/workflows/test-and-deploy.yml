@@ -1,0 +1,64 @@
+name: Test Backend and Deploy Coverage
+
+on:
+  push:
+    branches: [qa]
+  pull_request:
+    branches: [qa]
+
+jobs:
+  test-backend-deploy:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 1234
+          POSTGRES_DB: billing_db_test
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # Install backend dependencies
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+      
+      # Run backend tests
+      - name: Generate Prisma client for test
+        working-directory: ./backend
+        run: npm run prisma:generate:test
+
+      - name: Generate Prisma migrations for test
+        working-directory: ./backend
+        run: npm run prisma:migrate:test
+
+      # Run backend tests
+      - name: Run backend tests
+        working-directory: ./backend
+        run: npm run test:run
+
+      # Publish coverage to GitHub Pages
+      - name: Deploy backend coverage
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./backend/coverage/lcov-report
