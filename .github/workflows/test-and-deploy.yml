@@ -70,9 +70,9 @@ jobs:
       - name: Fix coverage HTML paths for GH Pages
         working-directory: ./backend
         run: |
-          find ./html/coverage -type f -name "*.html" -exec sed -i 's|href="/|href="./|g' {} +
-          find ./html/coverage -type f -name "*.html" -exec sed -i 's|src="/|src="./|g' {} +
-          find ./html/coverage -type f -name "*.js" -exec sed -i 's|"/|"./|g' {} +
+          find ./html -type f -name "*.html" -exec sed -i 's|href="/|href="./|g' {} +
+          find ./html -type f -name "*.html" -exec sed -i 's|src="/|src="./|g' {} +
+          find ./html -type f -name "*.js" -exec sed -i 's|"/|"./|g' {} +
 
       # Deploy coverage to GitHub Pages
       - name: Deploy coverage to GitHub Pages
