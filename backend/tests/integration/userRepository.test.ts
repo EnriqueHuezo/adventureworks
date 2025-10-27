@@ -1,10 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { prisma } from './setup';
+import { userRepository } from '../../src/repositories/userRepository';
 
 describe('Users integration', () => {
-  it('should have admin users from seed', async () => {
-    const admin = await prisma.user.findUnique({ where: { username: 'admin' } });
-    expect(admin).toBeDefined();
-    expect(admin?.fullName).toBe('Administrador Principal');
+  it('findByUsername should return user with roles', async () => {
+    const user = await userRepository.findByUsername('admin');
+    expect(user).toBeDefined();
+    expect(user?.username).toBe('admin');
+    expect(user?.roles.length).toBeGreaterThan(0);
+    expect(user?.roles[0].role).toBeDefined();
+  });
+  it('findByUsername should return null for non-existing user', async () => {
+    const user = await userRepository.findByUsername('nonexistentuser');
+    expect(user).toBeNull();
   });
 });

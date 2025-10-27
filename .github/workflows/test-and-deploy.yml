@@ -61,13 +61,13 @@ jobs:
         working-directory: ./backend
         run: npm run prisma:migrate:test
 
-      # Run backend tests
-      - name: Run backend tests
+      # Run tests with coverage and HTML report
+      - name: Run backend tests with HTML & coverage
         working-directory: ./backend
-        run: npm run test:run
+        run: npm run test:run:combined
 
-      # Publish coverage to GitHub Pages
-      - name: Deploy backend coverage
+      # Deploy coverage to GitHub Pages
+      - name: Deploy coverage to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
