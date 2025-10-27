@@ -27,6 +27,7 @@ jobs:
     
     env:
       DATABASE_URL: postgresql://postgres:1234@localhost:5432/billing_db_test
+      TZ: America/El_Salvador
 
     steps:
       # Checkout the repository
