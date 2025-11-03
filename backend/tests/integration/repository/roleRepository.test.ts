@@ -1,5 +1,5 @@
 import { describe, it, expect, test } from 'vitest';
-import { roleRepository } from '../../src/repositories/roleRepository';
+import { roleRepository } from '../../../src/repositories/roleRepository';
 
 describe('Roles integration', () => {
   it('findAll should return all roles', async () => {

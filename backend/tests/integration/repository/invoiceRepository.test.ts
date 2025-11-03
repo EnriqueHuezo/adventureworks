@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { PrismaClient, InvoiceStatus, InvoiceType, PaymentMethod } from '@prisma/client';
-import { invoiceRepository } from '../../src/repositories/invoiceRepository';
-import { getTodayStart, getTodayEnd } from '../../src/utils/dates';
+import { invoiceRepository } from '../../../src/repositories/invoiceRepository';
+import { getTodayStart, getTodayEnd } from '../../../src/utils/dates';
 
 const prisma = new PrismaClient();
 
@@ -97,6 +97,25 @@ describe('Invoice repository', () => {
     expect(result.invoices[0].clientId).toBe(testClientId);
   });
 
+  it('findAll with dateFrom only should return invoices', async () => {
+    const fromDate = new Date(new Date().setDate(new Date().getDate() - 1));
+    const result = await invoiceRepository.findAll({ dateFrom: fromDate });
+    expect(result.invoices.length).toBeGreaterThan(0);
+  });
+
+  it('findAll with dateTo only should return invoices', async () => {
+    const toDate = new Date(new Date().setDate(new Date().getDate() + 1));
+    const result = await invoiceRepository.findAll({ dateTo: toDate });
+    expect(result.invoices.length).toBeGreaterThan(0);
+  });
+
+  it('findAll with dateFrom and dateTo should return invoices', async () => {
+    const fromDate = new Date(new Date().setDate(new Date().getDate() - 1));
+    const toDate = new Date(new Date().setDate(new Date().getDate() + 1));
+    const result = await invoiceRepository.findAll({ dateFrom: fromDate, dateTo: toDate });
+    expect(result.invoices.length).toBeGreaterThan(0);
+  });
+
   it('findAll with full filters should work', async () => {
     const result = await invoiceRepository.findAll({
       type: InvoiceType.FACTURA,
@@ -141,6 +160,36 @@ describe('Invoice repository', () => {
     );
     expect(metrics.invoiceCount).toBeGreaterThan(0);
     expect(Number(metrics.totalSales)).toBeGreaterThanOrEqual(0);
+    expect(metrics.invoices).toBeInstanceOf(Array);
+  });
+
+  it('getDashboardMetrics return metrics', async () => {
+    const metrics = await invoiceRepository.getDashboardMetrics();
+    expect(metrics.invoiceCount).toBeGreaterThan(0);
+    expect(Number(metrics.totalSales)).toBeGreaterThanOrEqual(0);
+    expect(metrics.invoices).toBeInstanceOf(Array);
+  });
+
+  it('getDashboardMetrics filter by dateFrom should return metrics', async () => {
+    const metrics = await invoiceRepository.getDashboardMetrics(testBranchId, new Date(new Date().setDate(new Date().getDate() - 1))
+    );
+    expect(metrics.invoiceCount).toBeGreaterThan(0);
+    expect(Number(metrics.totalSales)).toBeGreaterThanOrEqual(0);
+    expect(metrics.invoices).toBeInstanceOf(Array);
+  });
+
+  it('getDashboardMetrics filter by dateTo should return metrics', async () => {
+    const metrics = await invoiceRepository.getDashboardMetrics(testBranchId, undefined,
+      new Date(new Date().setDate(new Date().getDate() + 1))
+    );
+    expect(metrics.invoiceCount).toBeGreaterThan(0);
+    expect(Number(metrics.totalSales)).toBeGreaterThanOrEqual(0);
+    expect(metrics.invoices).toBeInstanceOf(Array);
+  });
+
+  it('getDashboardMetrics filter by dateTo should return metrics', async () => {
+    const metrics = await invoiceRepository.getDashboardMetrics(9999);
+    expect(Number(metrics.totalSales)).toEqual(0);
     expect(metrics.invoices).toBeInstanceOf(Array);
   });
   

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { branchRepository } from '../../src/repositories/branchRepository';
+import { branchRepository } from '../../../src/repositories/branchRepository';
 
 describe('Branches integration', () => {
   it('findAll should return all branches ordered by name', async () => {

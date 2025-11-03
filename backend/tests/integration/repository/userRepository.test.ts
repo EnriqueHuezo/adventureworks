@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { userRepository } from '../../src/repositories/userRepository';
-import { roleRepository } from '../../src/repositories/roleRepository';
-import { branchRepository } from '../../src/repositories/branchRepository';
+import { userRepository } from '../../../src/repositories/userRepository';
+import { roleRepository } from '../../../src/repositories/roleRepository';
+import { branchRepository } from '../../../src/repositories/branchRepository';
 import bcrypt from 'bcryptjs';
 
 describe('Users integration', () => {

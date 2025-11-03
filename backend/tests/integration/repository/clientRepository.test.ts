@@ -1,5 +1,5 @@
 import { describe, it, expect, test, afterAll } from 'vitest';
-import { clientRepository } from '../../src/repositories/clientRepository';
+import { clientRepository } from '../../../src/repositories/clientRepository';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
