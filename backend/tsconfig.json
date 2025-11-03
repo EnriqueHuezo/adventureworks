@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true
   },
-  "include": ["src", "prisma/seed.ts", "tests/unit/dates.test.ts", "tests/unit/money.test.ts"],
+  "include": ["src", "prisma/seed.ts"],
   "exclude": ["node_modules", "dist"]
 }
 

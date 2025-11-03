@@ -16,7 +16,7 @@
     "prisma:seed": "ts-node ./prisma/seed.ts",
     "prisma:seed:test": "dotenv -e .env.test -- ts-node ./prisma/seed.ts",
     "test": "vitest",
-    "test:run:html": "vitest run --reporter=html --coverage.enabled=true --coverage.reporter=html --coverage.reportsDirectory=./html/coverage",
+    "test:run:html": "vitest run --reporter=default --reporter=html --coverage --coverage.enabled=true --coverage.all=true --coverage.reporter=html --coverage.reporter=text --coverage.reportsDirectory=./html/coverage",
     "test:run:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui --coverage.enabled=true"
   },
