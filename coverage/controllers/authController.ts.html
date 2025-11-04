@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">93.33% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>14/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">83.33% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>5/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">93.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>14/15</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -105,32 +105,32 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -142,32 +142,32 @@ import { z } from 'zod';
 import { AuthRequest } from '../middleware/auth';
 import { authService } from '../services/authService';
 &nbsp;
-const loginSchema = <span class="cstat-no" title="statement not covered" >z.object({</span>
+const loginSchema = z.object({
   username: z.string().min(1, 'Usuario requerido'),
   password: z.string().min(1, 'Contraseña requerida')
 });
 &nbsp;
-export const authController = <span class="cstat-no" title="statement not covered" >{</span>
-  async <span class="fstat-no" title="function not covered" >login(r</span>eq: AuthRequest, res: Response) {
-<span class="cstat-no" title="statement not covered" >    try {</span>
-      const { username, password } = <span class="cstat-no" title="statement not covered" >loginSchema.parse(req.body);</span>
-      const result = <span class="cstat-no" title="statement not covered" >await authService.login(username, password);</span>
-<span class="cstat-no" title="statement not covered" >      res.json(result);</span>
+export const authController = {
+  async login(req: AuthRequest, res: Response) {
+    try {
+      const { username, password } = loginSchema.parse(req.body);
+      const result = await authService.login(username, password);
+      res.json(result);
     } catch (error: any) {
-<span class="cstat-no" title="statement not covered" >      if (error.name === 'ZodError') {</span>
-<span class="cstat-no" title="statement not covered" >        return res.status(400).json({ error: 'Datos inválidos', details: error.errors });</span>
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: 'Datos inválidos', details: error.errors });
       }
-<span class="cstat-no" title="statement not covered" >      res.status(401).json({ error: error.message || 'Error de autenticación' });</span>
+      res.status(401).json({ error: error.message || <span class="branch-1 cbranch-no" title="branch not covered" >'Error de autenticación' }</span>);
     }
   },
 &nbsp;
-  async <span class="fstat-no" title="function not covered" >getMe(r</span>eq: AuthRequest, res: Response) {
-<span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      if (!req.user) {</span>
-<span class="cstat-no" title="statement not covered" >        return res.status(401).json({ error: 'No autenticado' });</span>
+  async getMe(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'No autenticado' });
       }
-      const user = <span class="cstat-no" title="statement not covered" >await authService.getMe(req.user.userId);</span>
-<span class="cstat-no" title="statement not covered" >      res.json(user);</span>
+      const user = await authService.getMe(req.user.userId);
+      res.json(user);
     } catch (error: any) {
 <span class="cstat-no" title="statement not covered" >      res.status(500).json({ error: error.message });</span>
     }
@@ -181,7 +181,7 @@ export const authController = <span class="cstat-no" title="statement not covere
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-03T20:38:59.474Z
+                at 2025-11-04T21:39:32.482Z
             </div>
         <script src="../prettify.js"></script>
         <script>
