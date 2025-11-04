@@ -11,6 +11,7 @@ export default defineConfig({
       include: ['src/**/*.ts'],
       exclude: [
         'src/routes/**',
+        //'src/controllers/**',
         'src/server.ts',
       ]
     },
